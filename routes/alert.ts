@@ -30,4 +30,20 @@ router.get('/getAlertById',async(req:Request,res:Response) => {
     }
 });
 
+router.get('/getAlertByVehicleId',async(req:Request,res:Response) => {
+    const vin = Number(req.query.vin);
+    try {
+        const alert = await prisma.alert.findUnique({
+            where : {id:vin},
+            include : {
+                telemetry : true
+            }
+        })
+        res.json(alert);
+    } catch (error){
+        console.log(error);
+        res.json(error);
+    }
+});
+
 export default router;
