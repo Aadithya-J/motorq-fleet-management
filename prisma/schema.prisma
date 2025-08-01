@@ -8,17 +8,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Manufacturer {
+
+model Owner { 
   id Int @id @default(autoincrement())
   name String
-  fleets Fleet[]
+
+  Fleet Fleet[]
 }
 
 model Fleet {
   id Int @id @default(autoincrement())
   name String
-  manufacturerid Int
-  manufacturer Manufacturer @relation(fields: [manufacturerid], references: [id])
+  OwnerId Int
+  owner Owner @relation(fields: [OwnerId], references: [id])
   vehicles Vehicle[]
 }
 
@@ -28,7 +30,7 @@ model Vehicle {
   model              String
   registrationStatus RegistrationStatusType @default(ACTIVE)
   telemtries         Telemetry[]
-  
+
   fleetID            Int
   fleet Fleet @relation(fields: [fleetID],references: [id])
 

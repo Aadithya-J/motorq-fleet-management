@@ -4,8 +4,9 @@ import prisma from '../utils/prismaClient'
 const router = Router();
 
 router.post("/create", async (req: Request,res: Response) => {
-    const {vin,manufacturer,model,fleetID,registrationStatus} = req.body;
+    const {vin,manufacturer,model,registrationStatus} = req.body;
     // console.log(vin);
+    const fleetID = Number(req.body.fleetID);
     try {
         const vehicle = await prisma.vehicle.create({
             data: {
