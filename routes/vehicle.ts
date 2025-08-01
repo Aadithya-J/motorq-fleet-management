@@ -36,4 +36,27 @@ router.get("/getVehicle", async (req: Request,res: Response) => {
     }
 })
 
+router.delete("/deleteVehicle",async(req:Request,res: Response) => {
+    const vehicleVin = Number(req.body.vehicleVin);
+    try {
+        const vehicle = await prisma.vehicle.delete({
+            where : {vin:vehicleVin}
+        })
+        res.json(vehicle);
+    } catch (error){
+        console.log(error);
+        res.json(error);
+    }
+})
+
+router.get("/list",async(req:Request,res: Response) => {
+    try {
+        const vehicleList = await prisma.vehicle.findMany();
+        res.json(vehicleList);
+    } catch (error){
+        console.log(error);
+        res.json(error);
+    }
+})
+
 export default router;
