@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,11 +12,15 @@ import alertRouter from '../routes/alert'
 import analyticsRouter from '../routes/analytics'
 app.use(express.json());
 
+app.use(cors({ origin: 'http://localhost:5173' }));
+
 app.use('/owner',ownerRouter);
 app.use('/fleet',fleetRouter);
 app.use('/vehicle',vehicleRouter);
 app.use('/telemetry',telemetryRouter);
-app.use('/alert',alertRouter);
+app.use('/alert', alertRouter);
+// also expose plural endpoint for SSE and alerts
+app.use('/alerts', alertRouter);
 app.use('/analytics',analyticsRouter)
 
 app.get('/', (req: Request, res: Response) => {

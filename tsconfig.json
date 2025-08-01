@@ -8,6 +8,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "utils/**/*.ts",
+    "routes/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }

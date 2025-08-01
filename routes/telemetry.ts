@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
-import prisma from '../utils/prismaClient'
+import prisma from '../utils/prismaClient';
+import redisClient from '../utils/redisClient';
 
 const router = Router();
 
@@ -12,6 +13,17 @@ router.post("/data", async (req: Request,res: Response) => {
     const vehicleVin = Number(req.body.vehicleVin)
     let date = new Date();
     try {
+        const vehicle = await prisma.vehicle.findUnique({
+            where: { vin: vehicleVin },
+            select: { fleetID: true }
+        });
+
+        if (vehicle && vehicle.fleetID) {
+            const cacheKey = `analytics:${vehicle.fleetID}`;
+            await redisClient.del(cacheKey);
+            console.log(`Cache invalidated for fleet: ${vehicle.fleetID}`);
+        }
+        
         const telemetry = await prisma.telemetry.create({
             data: {
                 latitude,
@@ -47,6 +59,8 @@ router.post("/data", async (req: Request,res: Response) => {
                         vehicleid : vehicleVin
                     }
                 })
+                await redisClient.del('alerts:all');
+                await redisClient.del(`alerts:vehicle:${vehicleVin}`);
                 const vehicleUpdate2 = await prisma.vehicle.update({
                     where : {
                         vin : vehicleVin
@@ -57,6 +71,8 @@ router.post("/data", async (req: Request,res: Response) => {
                     }
                 })
                 console.log(alert);
+                // publish new alert to pub/sub channel
+                await redisClient.publish('alerts', JSON.stringify(alert));
                 alert1 = alert;
             }
         } else {
@@ -79,7 +95,11 @@ router.post("/data", async (req: Request,res: Response) => {
                     vehicleid : vehicleVin
                 }
             })
+            await redisClient.del('alerts:all');
+            await redisClient.del(`alerts:vehicle:${vehicleVin}`);
             console.log(alert);
+            // publish new alert to pub/sub channel
+            await redisClient.publish('alerts', JSON.stringify(alert));
         }
         if(alert1 != undefined){
             const final1  = {

@@ -1,12 +1,22 @@
 import { Router, Request, Response } from 'express';
-import prisma from '../utils/prismaClient'
+import { Alert } from '../generated/prisma/client';
+import prisma from '../utils/prismaClient';
+import redisClient from '../utils/redisClient';
 
 const router = Router();
 
 
 router.get('/getFleetAnalytics',async(req:Request,res: Response) => {
     const fleetId = Number(req.query.fleetid);
+    const cacheKey = `analytics:${fleetId}`;
     try {
+        const cachedAnalytics = await redisClient.get(cacheKey);
+        if (cachedAnalytics) {
+            console.log("Cache hit");
+            return res.json(JSON.parse(cachedAnalytics));
+        }
+
+        console.log("Cache miss");
         const fleetData = await prisma.fleet.findUnique({
             where : {id:fleetId},
             select : {
@@ -62,7 +72,7 @@ router.get('/getFleetAnalytics',async(req:Request,res: Response) => {
                 });
                 let speedLimitAlertCount = 0;
                 let lowFuelAlertCount = 0;
-                alerts.forEach((alert,index)=>{
+                alerts.forEach((alert: Alert,index: number)=>{
                     if(alert.alert == "speed limit exceeded"){
                         speedLimitAlertCount++;
                     }
@@ -134,14 +144,20 @@ router.get('/getFleetAnalytics',async(req:Request,res: Response) => {
 
             totalDistanceTraveled = totalDistanceTraveled*-1;
 
-            res.json({
+            const analyticsData = {
                 avgFuel,
                 active,
                 inactive,
                 totalLowFuelAlert,
                 totalSpeedLimitAlert,
                 totalDistanceTraveled
+            };
+
+            await redisClient.set(cacheKey, JSON.stringify(analyticsData), {
+                EX: 600, // 10 minutes
             });
+
+            res.json(analyticsData);
         }
     } catch (error){
         console.log(error);
