@@ -5,12 +5,13 @@ const port = process.env.PORT || 3000;
 
 
 import vehicleRouter from '../routes/vehicle'
-
+import telemetryRouter from '../routes/telemetry'
 
 app.use(express.json());
 
 
 app.use('/vehicle',vehicleRouter);
+app.use('/telemetry',telemetryRouter);
 
 
 app.get('/', (req: Request, res: Response) => {

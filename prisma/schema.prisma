@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -14,22 +8,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Vehicle {
+  vin                Int                    @id @default(autoincrement())
+  manufacturer       String
+  model              String
+  fleetID            FleetType              @default(PERSONAL)
+  registrationStatus RegistrationStatusType @default(ACTIVE)
+  telemtries         Telemetry[]
+}
+
+model Telemetry {
+  id              Int              @id @default(autoincrement())
+  vehicleVin      Int
+  latitude        String
+  longitude       String
+  speed           Float
+  engineStatus    EngineStatusType
+  fuelPercentage  Float
+  odometerReading Int
+  errorCode       String
+  timestamp       DateTime
+  vehicle         Vehicle          @relation(fields: [vehicleVin], references: [vin])
+
+  @@index([vehicleVin])
+}
+
 enum FleetType {
   CORPORATE
   RENTAL
   PERSONAL
 }
 
-enum RegistrationStatus {
+enum RegistrationStatusType {
   ACTIVE
   MAINTENANCE
   DECOMISSIONED
 }
 
-model Vehicle {
-  vin Int @id @default(autoincrement())
-  manufacturer String
-  model String
-  fleetID FleetType @default(PERSONAL)
-  registrationStatus RegistrationStatus @default(ACTIVE)
+enum EngineStatusType {
+  ON
+  OFF
+  IDLE
 }
