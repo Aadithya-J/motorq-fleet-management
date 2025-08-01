@@ -31,4 +31,38 @@ router.post("/data", async (req: Request,res: Response) => {
     }
 });
 
+router.post("/multipleData", async (req: Request, res: Response) => {
+    const telemetries = req.body.telemetries;
+    console.log(telemetries);
+    const telemetryResult : any = [];
+    // console.log("start")
+    for (var i = 0;i < telemetries.length;i++){
+        const telemetry = telemetries[i];
+        const { latitude,longitude,engineStatus,errorCode} = telemetry;
+        const speed = parseFloat(telemetry.speed);
+        const fuelPercentage = parseFloat(telemetry.fuelPercentage);
+        const odometerReading = Number(telemetry.odometerReading);
+        const timestamp = new Date(telemetry.timestamp);
+        const vehicleVin = Number(telemetry.vehicleVin);
+        const telemetryRes = await prisma.telemetry.create({
+            data: {
+                latitude,
+                longitude,
+                speed,
+                engineStatus,
+                fuelPercentage,
+                odometerReading,
+                errorCode,
+                timestamp,
+                vehicleVin
+            }
+        })
+        telemetryResult.push(telemetryRes);
+        console.log(telemetryRes);
+        // console.log("complete1");
+    }
+    // console.log("complete");
+    res.json(telemetryResult);
+})
+
 export default router;
