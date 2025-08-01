@@ -84,4 +84,22 @@ router.post("/multipleData", async (req: Request, res: Response) => {
     res.json(telemetryResult);
 })
 
+router.get("/getDataById", async (req: Request, res: Response) => {
+    const vin = Number(req.query.vin);
+    const limit = Number(req.query.limit) || 10;
+    try {
+        const telemetries = await prisma.telemetry.findMany({
+            where: {vehicleVin : vin},
+            orderBy : {
+                timestamp : "desc"
+            },
+            take: limit
+        })
+        res.json(telemetries);
+    } catch (error) {
+        console.log(error);
+        res.json(error);
+    }
+})
+
 export default router;
