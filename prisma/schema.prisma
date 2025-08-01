@@ -13,3 +13,23 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum FleetType {
+  CORPORATE
+  RENTAL
+  PERSONAL
+}
+
+enum RegistrationStatus {
+  ACTIVE
+  MAINTENANCE
+  DECOMISSIONED
+}
+
+model Vehicle {
+  vin Int @id @default(autoincrement())
+  manufacturer String
+  model String
+  fleetID FleetType @default(PERSONAL)
+  registrationStatus RegistrationStatus @default(ACTIVE)
+}
