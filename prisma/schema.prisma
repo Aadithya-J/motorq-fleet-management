@@ -49,7 +49,7 @@ model Telemetry {
   errorCode       String
   timestamp       DateTime
   vehicle         Vehicle          @relation(fields: [vehicleVin], references: [vin])
-
+  alert Alert[]
   @@index([vehicleVin])
 }
 
@@ -63,4 +63,11 @@ enum EngineStatusType {
   ON
   OFF
   IDLE
+}
+
+model Alert {
+  id Int @id @default(autoincrement())
+  alert String
+  telemetryid Int
+  telemetry Telemetry @relation(fields: [telemetryid], references: [id])
 }

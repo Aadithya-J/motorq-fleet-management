@@ -24,6 +24,25 @@ router.post("/data", async (req: Request,res: Response) => {
                 vehicleVin
             }
         })
+        if(speed > 70) {
+            const alert = await prisma.alert.create({
+                data : {
+                    alert : "speed limit exceeded",
+                    telemetryid : telemetry.id
+                }
+            })
+            console.log(alert);
+        }
+
+        if(fuelPercentage <= 20) {
+            const alert = await prisma.alert.create({
+                data : {
+                    alert : "low fuel",
+                    telemetryid : telemetry.id
+                }
+            })
+            console.log(alert);
+        }
         res.json(telemetry);
     } catch (error){
         console.log(error);
