@@ -34,7 +34,10 @@ model Vehicle {
   fleetID            Int
   fleet Fleet @relation(fields: [fleetID],references: [id])
 
+  currentAlertCount Int @default(0)
+
   @@index([fleetID])
+  Alert Alert[]
 }
 
 model Telemetry {
@@ -70,4 +73,7 @@ model Alert {
   alert String
   telemetryid Int
   telemetry Telemetry @relation(fields: [telemetryid], references: [id])
+  vehicleid Int
+  vehicle Vehicle @relation(fields: [vehicleid], references: [vin])
+  timestamp DateTime @default(now())
 }
