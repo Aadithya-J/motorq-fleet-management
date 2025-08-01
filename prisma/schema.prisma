@@ -8,13 +8,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Manufacturer {
+  id Int @id @default(autoincrement())
+  name String
+  fleets Fleet[]
+}
+
+model Fleet {
+  id Int @id @default(autoincrement())
+  name String
+  manufacturerid Int
+  manufacturer Manufacturer @relation(fields: [manufacturerid], references: [id])
+  vehicles Vehicle[]
+}
+
 model Vehicle {
   vin                Int                    @id @default(autoincrement())
   manufacturer       String
   model              String
-  fleetID            FleetType              @default(PERSONAL)
   registrationStatus RegistrationStatusType @default(ACTIVE)
   telemtries         Telemetry[]
+  
+  fleetID            Int
+  fleet Fleet @relation(fields: [fleetID],references: [id])
+
+  @@index([fleetID])
 }
 
 model Telemetry {
@@ -31,12 +49,6 @@ model Telemetry {
   vehicle         Vehicle          @relation(fields: [vehicleVin], references: [vin])
 
   @@index([vehicleVin])
-}
-
-enum FleetType {
-  CORPORATE
-  RENTAL
-  PERSONAL
 }
 
 enum RegistrationStatusType {
