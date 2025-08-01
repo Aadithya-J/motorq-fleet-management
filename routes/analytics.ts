@@ -78,13 +78,69 @@ router.get('/getFleetAnalytics',async(req:Request,res: Response) => {
             let avgFuel = sumFuel/(n-count);
             let active = n-inactive;
 
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const fleetDataEarliestIn24Hours = await prisma.fleet.findUnique({
+                where : {id:fleetId},
+                select : {
+                    vehicles : {
+                        select : {
+                            telemtries : {
+                                orderBy : {timestamp : 'asc'},
+                                take: 1,
+                                where : {
+                                    timestamp : {
+                                        gte : twentyFourHoursAgo
+                                    }
+                                }
+                            },
+                            vin : true,
+                        },
+                        orderBy : {
+                            vin : 'asc'
+                        }
+                    }
+                },
+            });
+            const fleetDataLatestIn24Hours = await prisma.fleet.findUnique({
+                where : {id:fleetId},
+                select : {
+                    vehicles : {
+                        select : {
+                            telemtries : {
+                                orderBy : {timestamp : 'desc'},
+                                take: 1,
+                                where : {
+                                    timestamp : {
+                                        gte : twentyFourHoursAgo
+                                    }
+                                }
+                            },
+                            vin : true,
+                        },
+                        orderBy : {
+                            vin : 'asc'
+                        }
+                    }
+                },
+            })
+
+            let totalDistanceTraveled = 0;
+            for(let i = 0;i < n;i++){
+                if(fleetDataEarliestIn24Hours?.vehicles[i].telemtries != undefined && fleetDataEarliestIn24Hours?.vehicles[i].telemtries.length > 0 && fleetDataLatestIn24Hours?.vehicles[i].telemtries != undefined && fleetDataLatestIn24Hours?.vehicles[i].telemtries.length > 0){
+                    let distance = fleetDataEarliestIn24Hours?.vehicles[i].telemtries[0].odometerReading - fleetDataLatestIn24Hours?.vehicles[i].telemtries[0].odometerReading;
+                    totalDistanceTraveled += distance;
+                }
+            }
+
+            totalDistanceTraveled = totalDistanceTraveled*-1;
 
             res.json({
                 avgFuel,
                 active,
                 inactive,
                 totalLowFuelAlert,
-                totalSpeedLimitAlert
+                totalSpeedLimitAlert,
+                totalDistanceTraveled
             });
         }
     } catch (error){
